@@ -222,10 +222,16 @@ export interface EnergyPlanDetail {
     controlledLoad?: CdrControlledLoad[];
     /** Peak-demand (kW) charges — NOT energy. Treating these as usage understates the plan's cost. */
     demandCharges?: CdrDemandCharge[];
+    eligibility?: Array<{ type?: string; description?: string; information?: string }>;
+    fees?: Array<{ type?: string; term?: string; amount?: string; rate?: string; description?: string }>;
+    discounts?: unknown[];
+    incentives?: unknown[];
   };
 }
 
 // ───────────────────────── Output of estimatePlanCosts ─────────────────────────
+
+export type EligibilityStatus = 'ELIGIBLE' | 'UNKNOWN' | 'INELIGIBLE';
 
 export interface RankedPlanCost {
   planId: string;
