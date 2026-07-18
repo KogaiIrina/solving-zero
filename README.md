@@ -88,8 +88,6 @@ There is also a **short live walkthrough** after you submit (~20–30 min): we'l
 
 ## Write-ups
 
-- See [`DECISIONS.md`](DECISIONS.md) for the implementation sequence, trade-offs, validation strategy,
-  deliberate scope cuts, and prioritized follow-up work.
 - Spend 20 to 30mins writing up each meaningful decision: what you decided, the options you considered, why you chose, and what you'd do with more time. Include how you **sequenced** the goals and what you left out.
 
 ## Running it
