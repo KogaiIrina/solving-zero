@@ -63,24 +63,34 @@ export interface RawServicePoints {
 // ───────────────────────── Household: current plan + context (Fiskil, snake_case) ─────────────────────────
 
 /** A snake_case tariff rate. `time_of_use` times are full "HH:MM:SS+10:00" (note: fetched CDR plans use "HH:MM"). */
-interface SnakeRate {
+export interface SnakeRate {
   unit_price: string;
   measure_unit?: string;
+  volume?: number;
+  period?: string;
 }
 
 /** The household's CURRENT contract (from `accounts`), used to cost their actual/baseline spend. */
 export interface RawElectricityContract {
+  time_zone?: string;
   tariff_period?: Array<{
     rate_block_u_type?: 'singleRate' | 'timeOfUseRates' | string;
     daily_supply_charge?: string;
-    single_rate?: { rates: SnakeRate[] };
+    start_date?: string;
+    end_date?: string;
+    time_zone?: string;
+    single_rate?: { rates: SnakeRate[]; period?: string };
     time_of_use_rates?: Array<{
       type: 'PEAK' | 'SHOULDER' | 'OFF_PEAK' | string;
       rates: SnakeRate[];
+      period?: string;
       time_of_use: Array<{ days: string[]; start_time: string; end_time: string }>;
     }>;
   }>;
-  solar_feed_in_tariff?: Array<{ single_tariff?: { rates: SnakeRate[] } }>;
+  solar_feed_in_tariff?: Array<{
+    tariff_u_type?: string;
+    single_tariff?: { rates: SnakeRate[]; period?: string };
+  }>;
 }
 
 export interface RawAccounts {
@@ -116,7 +126,18 @@ export interface RawBilling {
   billing: Array<{
     transaction_u_type: 'usage' | 'otherCharges' | 'onceOff' | 'payment' | string;
     gst?: string;
-    usage?: { amount: string; description: string; start_date: string; end_date: string; usage?: number };
+    usage?: {
+      amount: string;
+      description: string;
+      start_date: string;
+      end_date: string;
+      usage?: number;
+      invoice_number?: string;
+      is_estimate?: boolean;
+      measure_unit?: string;
+      service_point_id?: string;
+      time_of_use_type?: string;
+    };
     other_charges?: { amount: string; description: string };
     once_off?: { amount: string; description: string };
     payment?: { amount: string; method?: string };
