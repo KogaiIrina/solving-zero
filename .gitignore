@@ -1,4 +1,14 @@
 node_modules/
 dist/
+coverage/
+*.tsbuildinfo
 *.log
+*.pem
 .DS_Store
+.env*
+!.env.example
+
+# Web UI build and local runtime output
+web-ui/.next/
+web-ui/next-env.d.ts
+web-ui/app/comparison-report.json

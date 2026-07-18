@@ -7,6 +7,7 @@
   "scripts": {
     "compare": "node --import tsx src/cli.ts --fixture",
     "compare:live": "node --import tsx src/cli.ts --live",
+    "generate:web-report": "node --import tsx scripts/generate-web-report.ts",
     "verify": "node --import tsx scripts/verify-setup.mts",
     "test": "vitest run",
     "test:watch": "vitest",
