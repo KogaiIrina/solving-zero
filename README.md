@@ -22,7 +22,7 @@ Click the badge (or **Code ▸ Codespaces ▸ Create codespace on main**). The d
 nvm use          # optional — pins Node 22 (see .nvmrc)
 npm install
 npm run verify   # confirms your toolchain + that the data loads (does NOT test your solution)
-npm test         # the contract test — fails until you implement the stubs
+npm test         # runs the focused backend calculation and integration tests
 ```
 
 You implement two stubs in `src/`: [`fetchPlans.ts`](src/fetchPlans.ts) and [`estimatePlanCosts.ts`](src/estimatePlanCosts.ts). Then read [`GOAL_GUIDE.md`](GOAL_GUIDE.md) and pick where to start.
@@ -88,6 +88,8 @@ There is also a **short live walkthrough** after you submit (~20–30 min): we'l
 
 ## Write-ups
 
+- See [`DECISIONS.md`](DECISIONS.md) for the implementation sequence, trade-offs, validation strategy,
+  deliberate scope cuts, and prioritized follow-up work.
 - Spend 20 to 30mins writing up each meaningful decision: what you decided, the options you considered, why you chose, and what you'd do with more time. Include how you **sequenced** the goals and what you left out.
 
 ## Running it
@@ -95,6 +97,36 @@ There is also a **short live walkthrough** after you submit (~20–30 min): we'l
 ```bash
 npm install
 npm run verify    # setup smoke-test: confirms Node/TS + that the data loads
-npm test          # the example/contract test (fails until you implement)
+npm test          # focused backend calculation and integration tests
 npm run typecheck
 ```
+
+## Compare plans from the command line
+
+The recorded fixture is the deterministic default and does not require network access:
+
+```bash
+npm run compare -- --as-of 2026-07-14 --top 5
+```
+
+To fetch current plans from the ten supplied retailer endpoints instead:
+
+```bash
+npm run compare:live -- --top 5
+```
+
+## Run the web report
+
+```bash
+npm --prefix web-ui install
+npm --prefix web-ui run dev
+```
+
+There is no separate backend server or REST API. The web `predev`, `prebuild`, and `pretypecheck` steps run the root engine through
+`scripts/generate-web-report.ts`, write one comparison report, and then server-render that report. `npm run compare`
+runs the same engine without the web presentation.
+
+The output leads with the validated current-plan cost, shows a potential saving only when a costed alternative is
+cheaper and not known to be ineligible, identifies the retailer, surfaces eligibility caveats, and reports plans
+that were excluded rather than silently treating them as zero-cost offers. The web report regenerates from this
+same engine before every web development session and local validation check.
