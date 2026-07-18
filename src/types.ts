@@ -45,6 +45,15 @@ export interface RawServicePoint {
   location?: Record<string, unknown>;
   /** The participant with `role: "LNSP"` is the distributor — match it to a plan's geography. */
   related_participants?: Array<{ party: string; role: string }>;
+  meters?: Array<{
+    meter_id?: string;
+    registers?: Array<{
+      register_suffix: string;
+      controlled_load?: boolean;
+      register_consumption_type?: string;
+      unit_of_measure?: string;
+    }>;
+  }>;
 }
 
 export interface RawServicePoints {
