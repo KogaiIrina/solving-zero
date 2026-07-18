@@ -169,17 +169,21 @@ export interface CdrRate {
 
 export interface CdrTariffPeriod {
   dailySupplyCharge?: string;
+  startDate?: string;
+  endDate?: string;
   /** Discriminant for which rate block below is populated. */
   rateBlockUType: 'singleRate' | 'timeOfUseRates' | string;
   /** Single or TIERED: one rate = flat; multiple rates with `volume` ceilings = a block tariff. */
-  singleRate?: { rates: CdrRate[] };
+  singleRate?: { rates: CdrRate[]; period?: string };
   timeOfUseRates?: Array<{
     type: 'PEAK' | 'SHOULDER' | 'OFF_PEAK' | string;
     /** TOU bands can themselves be tiered (multiple rates with `volume`). */
     rates: CdrRate[];
+    period?: string;
     /** Times are local "HH:MM" (24h, end exclusive, midnight = "00:00"); a window may wrap midnight. */
     timeOfUse: Array<{ days: string[]; startTime: string; endTime: string }>;
   }>;
+  demandCharges?: CdrDemandCharge[];
 }
 
 /**
@@ -189,7 +193,7 @@ export interface CdrTariffPeriod {
 export interface CdrControlledLoad {
   rateBlockUType?: 'singleRate' | 'timeOfUseRates' | string;
   dailySupplyCharge?: string;
-  singleRate?: { rates: CdrRate[] };
+  singleRate?: { rates: CdrRate[]; period?: string };
   timeOfUseRates?: CdrTariffPeriod['timeOfUseRates'];
 }
 
@@ -216,8 +220,19 @@ export interface EnergyPlanDetail {
   effectiveTo?: string | null;
   geography?: { distributors?: string[] };
   electricityContract: {
+    timeZone?: string;
     tariffPeriod: CdrTariffPeriod[];
-    solarFeedInTariff?: Array<{ singleTariff?: { rates: CdrRate[] } }>;
+    solarFeedInTariff?: Array<{
+      tariffUType?: string;
+      singleTariff?: { rates: CdrRate[]; period?: string };
+      timeVaryingTariffs?: Array<{
+        type: string;
+        rates: CdrRate[];
+        period?: string;
+        timeVariations: Array<{ days: string[]; startTime: string; endTime: string }>;
+      }>;
+      description?: string;
+    }>;
     /** Separately-metered controlled load(s) — at contract level, not in tariffPeriod. */
     controlledLoad?: CdrControlledLoad[];
     /** Peak-demand (kW) charges — NOT energy. Treating these as usage understates the plan's cost. */
@@ -236,8 +251,12 @@ export type EligibilityStatus = 'ELIGIBLE' | 'UNKNOWN' | 'INELIGIBLE';
 export interface RankedPlanCost {
   planId: string;
   planName: string;
+  retailerName: string;
   /** False if the plan doesn't apply to this household (wrong distributor / customer type). */
   applicable: boolean;
+  /** Product eligibility is separate from network/date applicability and numeric costability. */
+  eligibilityStatus: EligibilityStatus;
+  eligibilityNotes?: string[];
   /** Annual cost in AUD; null when it can't be costed (say why in `notes`). */
   annualCostAud: number | null;
   breakdown?: { usageCost?: number; supplyCost?: number; solarCredit?: number; [k: string]: number | undefined };

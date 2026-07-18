@@ -14,8 +14,7 @@
 
 import { describe, it, expect } from "vitest";
 import { estimatePlanCosts } from "./estimatePlanCosts.js";
-import { fetchPlans } from "./fetchPlans.js";
-import type { EnergyPlanDetail, RawConsumption, RawServicePoints } from "./types.js";
+import type { EnergyPlanDetail, RawConsumption, RawDer, RawServicePoints } from "./types.js";
 
 // ───────────────────────── synthetic, hand-computable household ─────────────────────────
 
@@ -175,6 +174,8 @@ describe("Tier B — pipeline properties", () => {
     for (const r of result) {
       expect(typeof r.planId).toBe("string");
       expect(typeof r.planName).toBe("string");
+      expect(typeof r.retailerName).toBe("string");
+      expect(["ELIGIBLE", "UNKNOWN", "INELIGIBLE"]).toContain(r.eligibilityStatus);
     }
   });
 
@@ -195,12 +196,50 @@ describe("Tier B — pipeline properties", () => {
       .map((r) => r.annualCostAud as number);
     expect(costed).toEqual([...costed].sort((a, b) => a - b));
   });
-});
 
-describe("fetchPlans (contract)", () => {
-  // We don't run the live fetch here (it hits the network). YOU should add tests for your fetch/filter
-  // logic — separate the HTTP call from the filtering so you can test the filter against recorded plans.
-  it("is a function", () => {
-    expect(typeof fetchPlans).toBe("function");
+  it("marks a battery-only offer ineligible when DER shows no battery", () => {
+    const plan = structuredClone(SINGLE_RATE);
+    plan.planId = "BATTERY-ONLY";
+    plan.brandName = "Test Energy";
+    plan.electricityContract.eligibility = [
+      { information: "Offer only available to customers with solar panels and battery." },
+    ];
+    const der: RawDer = {
+      der_records: [
+        {
+          service_point_id: "SP1",
+          ac_connections: [
+            {
+              der_devices: [
+                { type: "SOLAR_PV", count: 16, nominal_rated_capacity: 0.4, nominal_storage_capacity: 0 },
+              ],
+            },
+          ],
+        },
+        {
+          service_point_id: "ANOTHER-HOUSEHOLD",
+          ac_connections: [
+            {
+              der_devices: [
+                { type: "BATTERY", count: 1, nominal_storage_capacity: 10 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = estimatePlanCosts({
+      usage: synthUsage(FLAT_IMPORT, FLAT_EXPORT),
+      servicePoints: CITIPOWER_SP,
+      der,
+      plans: [plan],
+    })[0]!;
+
+    expect(result.retailerName).toBe("Test Energy");
+    expect(result.eligibilityStatus).toBe("INELIGIBLE");
+    expect(result.eligibilityNotes).toContain(
+      "Requires a battery, but the household data shows no battery storage",
+    );
   });
 });
