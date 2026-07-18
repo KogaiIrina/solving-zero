@@ -5,7 +5,9 @@
   "description": "SolvingZero take-home: fetch real CDR electricity plans and estimate + rank their annual cost for a real household usage profile.",
   "type": "module",
   "scripts": {
-    "verify": "tsx scripts/verify-setup.mts",
+    "compare": "node --import tsx src/cli.ts --fixture",
+    "compare:live": "node --import tsx src/cli.ts --live",
+    "verify": "node --import tsx scripts/verify-setup.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

@@ -8,7 +8,15 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import type { RawConsumption, RawServicePoints, RawAccounts, RawDer, RawBilling, Retailer } from "./types.js";
+import type {
+  EnergyPlanDetail,
+  RawConsumption,
+  RawServicePoints,
+  RawAccounts,
+  RawDer,
+  RawBilling,
+  Retailer,
+} from "./types.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = join(ROOT, "user_data");
@@ -22,6 +30,11 @@ export function loadRetailers(): Retailer[] {
   return JSON.parse(readFileSync(join(ROOT, "retailers.json"), "utf8")) as Retailer[];
 }
 
+export function loadRecordedPlans(): EnergyPlanDetail[] {
+  return JSON.parse(readFileSync(join(ROOT, "fixtures", "sample-plans.json"), "utf8")) as EnergyPlanDetail[];
+}
+
+/** Loads the household's raw half-hourly import and export records. */
 export function loadUsage(): RawConsumption {
   return readJson<RawConsumption>("usage.json");
 }
